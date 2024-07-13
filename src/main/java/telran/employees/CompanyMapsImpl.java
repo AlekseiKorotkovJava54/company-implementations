@@ -3,17 +3,18 @@ package telran.employees;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CompanyMapsImpl implements Company {
-	
+import telran.io.Persistable;
+//So far we do consider optimization
+public class CompanyMapsImpl implements Company, Persistable {
 	TreeMap<Long, Employee> employees = new TreeMap<>();
-	HashMap<String, List<Employee>> employeesDepartment = new HashMap<>();
+	TreeMap<String, List<Employee>> employeesDepartment = new TreeMap<>();
 	TreeMap<Float, List<Manager>> factorManagers = new TreeMap<>();
-	
 	private class CompanyIterator implements Iterator<Employee>{
 		Iterator<Employee> iterator = employees.values().iterator();
 		Employee prev;
 		@Override
 		public boolean hasNext() {
+			
 			return iterator.hasNext();
 		}
 
@@ -22,7 +23,6 @@ public class CompanyMapsImpl implements Company {
 			prev = iterator.next();
 			return prev;
 		}
-		
 		@Override
 		public void remove() {
 			iterator.remove();
@@ -32,6 +32,7 @@ public class CompanyMapsImpl implements Company {
 	}
 	@Override
 	public Iterator<Employee> iterator() {
+		
 		return new CompanyIterator();
 	}
 
@@ -45,6 +46,7 @@ public class CompanyMapsImpl implements Company {
 			Manager manager = (Manager)empl;
 			addToIndexMap(factorManagers, manager.factor, manager);
 		}
+
 	}
 
 	@Override
@@ -70,16 +72,16 @@ public class CompanyMapsImpl implements Company {
 			removeFromIndexMap(factorManagers, manager.factor, manager);
 		}
 	}
-	
 	private <K, V extends Employee> void removeFromIndexMap(Map<K, List<V>> map, K key, V empl) {
-		List<V> list = map.get(key);
-		list.remove(empl);
-		if(list.isEmpty()) {
-			map.remove(key);
-		}
+		map.computeIfPresent(key, (k, v) -> {
+			v.remove(empl);
+			return v.isEmpty() ? null : v;
+		});
+		
 	}
 	private <K, V extends Employee> void addToIndexMap(Map<K, List<V>> map, K key, V empl) {
 		map.computeIfAbsent(key, k -> new ArrayList<>()).add(empl);
+		
 	}
 
 	@Override
@@ -91,8 +93,7 @@ public class CompanyMapsImpl implements Company {
 
 	@Override
 	public String[] getDepartments() {
-		//TOFIX
-		return employeesDepartment.keySet().stream().sorted()
+		return employeesDepartment.keySet()
 				.toArray(String[]::new);
 	}
 
@@ -104,4 +105,19 @@ public class CompanyMapsImpl implements Company {
 		}
 		return res;
 	}
+
+	@Override
+	public void save(String filePathStr) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void restore(String filePathStr) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
+
 }
