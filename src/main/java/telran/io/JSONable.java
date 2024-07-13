@@ -1,6 +1,8 @@
 package telran.io;
 
+import telran.employees.Employee;
+
 public interface JSONable {
 String getJSON();
-void setObject(String json);
+Employee setObject(String json);
 }

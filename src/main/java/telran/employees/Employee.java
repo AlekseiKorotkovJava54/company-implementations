@@ -50,6 +50,7 @@ public class Employee implements Comparable<Employee>, JSONable{
 		Employee other = (Employee) obj;
 		return id == other.id;
 	}
+	
 	@Override
 	public String getJSON() {
 		JSONObject jsonObject = new JSONObject();
@@ -69,17 +70,18 @@ public class Employee implements Comparable<Employee>, JSONable{
 		}
 	}
 	@Override
-	public void setObject(String json) {
+	public Employee setObject(String json) {
+		Employee empl;
 		JSONObject jsonObject = new JSONObject(json);
 		String className = jsonObject.getString("className");
 		try {
-			Employee empl = (Employee) Class.forName(className)
+			empl = (Employee) Class.forName(className)
 					.getConstructor().newInstance();
 			empl.fillEmployee(jsonObject);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		
+		return empl;
 	}
 	protected void fillEmployee(JSONObject jsonObject) {
 		id = jsonObject.getLong("id");
