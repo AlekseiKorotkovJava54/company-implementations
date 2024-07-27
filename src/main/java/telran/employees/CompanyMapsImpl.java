@@ -1,9 +1,7 @@
 package telran.employees;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,7 +42,7 @@ public class CompanyMapsImpl implements Company, Persistable {
 	@Override
 	public void addEmployee(Employee empl) {
 		if (employees.putIfAbsent(empl.getId(), empl) != null) {
-			throw new IllegalStateException();
+			throw new IllegalStateException("employee already exists");
 		}
 		addToIndexMap(employeesDepartment, empl.getDepartment(), empl);
 		if (empl instanceof Manager) {
@@ -64,7 +62,7 @@ public class CompanyMapsImpl implements Company, Persistable {
 	public Employee removeEmployee(long id) {
 		Employee empl = employees.remove(id);
 		if(empl == null) {
-			throw new NoSuchElementException();
+			throw new NoSuchElementException("employee doesn't exist");
 		}
 		removeFromIndexMaps(empl);
 		return empl;
@@ -113,27 +111,23 @@ public class CompanyMapsImpl implements Company, Persistable {
 
 	@Override
 	public void save(String filePathStr) {
-		try (PrintWriter printWriter = new PrintWriter(filePathStr)) {
-			for(Employee empl: employees.values()) {
-				printWriter.println(empl.getJSON());
-			}
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
-		} 
+		try(PrintWriter writer = new PrintWriter(filePathStr)) {
+			this.forEach(empl -> writer.println(empl.getJSON()));
+		} catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+		
 	}
 
 	@Override
 	public void restore(String filePathStr) {
-		try (BufferedReader reader = new BufferedReader(new FileReader(filePathStr))) {
-			reader.lines().forEach(line -> {
-				Employee empl = (Employee) new Employee().setObject(line);
-				addEmployee(empl);
-			});
-		} catch (RuntimeException e) {
-			e.printStackTrace();
-		}catch (Exception e) {
-			System.out.println(e.getMessage());
-		} 
+		try(BufferedReader reader = new BufferedReader(new FileReader(filePathStr))){
+			reader.lines().map(l -> (Employee) new Employee().setObject(l))
+			.forEach(this::addEmployee);
+		}catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+		
 	}
 
 	

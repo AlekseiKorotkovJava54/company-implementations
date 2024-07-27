@@ -7,6 +7,7 @@ public class Manager extends Employee {
     public Manager() {
     	
     }
+    
 	public Manager(long id, int basicSalary, String department, float factor) {
 		super(id, basicSalary, department);
 		this.factor = factor;
