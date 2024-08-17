@@ -34,13 +34,13 @@ public class CompanyMapsImpl implements Company, Persistable {
 		
 	}
 	@Override
-	public Iterator<Employee> iterator() {
+	synchronized public Iterator<Employee> iterator() {
 		
 		return new CompanyIterator();
 	}
 
 	@Override
-	public void addEmployee(Employee empl) {
+	synchronized public  void addEmployee(Employee empl) {
 		if (employees.putIfAbsent(empl.getId(), empl) != null) {
 			throw new IllegalStateException("employee already exists");
 		}
@@ -53,13 +53,13 @@ public class CompanyMapsImpl implements Company, Persistable {
 	}
 
 	@Override
-	public Employee getEmployee(long id) {
+	synchronized public Employee getEmployee(long id) {
 		
 		return employees.get(id);
 	}
 
 	@Override
-	public Employee removeEmployee(long id) {
+	synchronized public Employee removeEmployee(long id) {
 		Employee empl = employees.remove(id);
 		if(empl == null) {
 			throw new NoSuchElementException("employee doesn't exist");
@@ -88,20 +88,20 @@ public class CompanyMapsImpl implements Company, Persistable {
 	}
 
 	@Override
-	public int getDepartmentBudget(String department) {
+	synchronized public int getDepartmentBudget(String department) {
 		return employeesDepartment.getOrDefault(department,
 				Collections.emptyList()).stream()
 		.collect(Collectors.summingInt(Employee::computeSalary));
 	}
 
 	@Override
-	public String[] getDepartments() {
+	synchronized public String[] getDepartments() {
 		return employeesDepartment.keySet()
 				.toArray(String[]::new);
 	}
 
 	@Override
-	public Manager[] getManagersWithMostFactor() {
+	synchronized public Manager[] getManagersWithMostFactor() {
 		Manager[] res = new Manager[0];
 		if(!factorManagers.isEmpty()) {
 			res = factorManagers.lastEntry().getValue().toArray(res);
@@ -110,7 +110,7 @@ public class CompanyMapsImpl implements Company, Persistable {
 	}
 
 	@Override
-	public void save(String filePathStr) {
+	synchronized public void save(String filePathStr) {
 		try(PrintWriter writer = new PrintWriter(filePathStr)) {
 			this.forEach(empl -> writer.println(empl.getJSON()));
 		} catch(Exception e) {
@@ -120,7 +120,7 @@ public class CompanyMapsImpl implements Company, Persistable {
 	}
 
 	@Override
-	public void restore(String filePathStr) {
+	synchronized public void restore(String filePathStr) {
 		try(BufferedReader reader = new BufferedReader(new FileReader(filePathStr))){
 			reader.lines().map(l -> (Employee) new Employee().setObject(l))
 			.forEach(this::addEmployee);
